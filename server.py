@@ -25,7 +25,9 @@ print(deb64("YWJjMTIzIT8kKiYoKSctPUB+"))
 while True:
     conn, addr = server.accept()
     print("Connected by", addr)
-    myfile = open('./server data/ceeeb.mp3', "wb")
+    now = time.localtime()
+    filetime = time.strftime("%H%M%S",now)
+    myfile = open('./server data/ceeeb'+str(filetime)+'.mp3', "wb")
     encodedData = ''
     while True:
         indata = conn.recv(1024)
@@ -41,7 +43,7 @@ while True:
         data = data[1:len(data)-1]
         encodedData = encodedData+data
     print("writing file....")
-    print('line 50 len =>> ' + str(len(encodedData)))
+    print('len =>> ' + str(len(encodedData)))
     print(base64.b64decode(encodedData))
     myfile.write(base64.b64decode(encodedData))
     print("Closing file")
