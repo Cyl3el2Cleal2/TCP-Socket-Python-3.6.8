@@ -14,6 +14,8 @@ finally:
     print("receiving result")
     data = server.recv(len(text)*2)
     newText = open('./client data/text_small.txt', "w")
+    # print(type(data))
+    print(data)
     newText.write(data.decode())
     newText.close()
     server.close()
