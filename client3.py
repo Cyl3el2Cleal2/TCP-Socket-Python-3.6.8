@@ -23,6 +23,7 @@ byteStr = open('./client data/text.txt', "r").read()
 # byteStr = str(allbyte)[1:]
 # byteStr = byteStr[:-1]
 
+Time = 0.001
 print(byteStr)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,27 +36,36 @@ while(len(byteStr) != 0):
     # print(byteStr[:7])
     # sumData += data.data
     try:
-        print(type(data.seq))
+        # print(type(data.seq))
         print(data.seq+data.data+data.checksum)
         server.send(data.seq+data.data+data.checksum)
-        seq = seq+1
+
         # print("Receiving return data")
+        server.settimeout(Time)
+        send = 0
         getData = server.recv(1024)
-        getDataStr = repr(getData.decode()).replace('\'','')
-        if getDataStr == 'NACK()':
-            print('>>>>>>>>>>>>> Send again')
-            seq = seq-1
-            continue
-        print("Return >>>")
-        print(getDataStr)
-        check = hashlib.md5(bytes(getDataStr[:len(getDataStr)-32], 'utf-8')).hexdigest() == getDataStr[-32:]
-        if check:
-            sumData = sumData + getDataStr[1:len(getDataStr)-32]
+        send = 1
+    except socket.timeout as e:
+        print('Timeout, Send previous Frame again!!!!!!!!!!!!!!!!!!')
+        if send != 1:
+            server.settimeout(1)
+            trash = server.recv(1024)
+            server.settimeout(Time)
+        continue
+    getDataStr = repr(getData.decode()).replace('\'','')
+    if getDataStr == 'NACK()':
+        print('>>>>>>>>>>>>> Send again')
+        seq = seq-1
+        continue
+    print("Return >>>")
+    print(getDataStr)
+    check = hashlib.md5(bytes(getDataStr[:len(getDataStr)-32], 'utf-8')).hexdigest() == getDataStr[-32:]
+    if check:
+        sumData = sumData + getDataStr[1:len(getDataStr)-32]
+        seq = seq+1
         byteStr = byteStr[7:]
-    finally:
-        print("Next Frame")
-        # print(len(data.checksum))
-        
+    else:
+        continue
 server.close()   
 print('Exit')
 print(sumData)
