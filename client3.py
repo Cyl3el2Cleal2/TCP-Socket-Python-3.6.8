@@ -28,29 +28,34 @@ print(byteStr)
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect((HOST, PORT))
 
-print(len(byteStr))
 sumData = ''
 seq = 1
 while(len(byteStr) != 0):
     data = Frame(seq, byteStr[:7])
-    print(byteStr[:7])
-    byteStr = byteStr[7:]
+    # print(byteStr[:7])
     # sumData += data.data
     try:
         print(type(data.seq))
         print(data.seq+data.data+data.checksum)
         server.send(data.seq+data.data+data.checksum)
-    finally:
         seq = seq+1
-        print("Receiving return data")
+        # print("Receiving return data")
         getData = server.recv(1024)
-        print("Return >>>")
         getDataStr = repr(getData.decode()).replace('\'','')
+        if getDataStr == 'NACK()':
+            print('>>>>>>>>>>>>> Send again')
+            seq = seq-1
+            continue
+        print("Return >>>")
         print(getDataStr)
+        check = hashlib.md5(bytes(getDataStr[:len(getDataStr)-32], 'utf-8')).hexdigest() == getDataStr[-32:]
+        if check:
+            sumData = sumData + getDataStr[1:len(getDataStr)-32]
+        byteStr = byteStr[7:]
+    finally:
         print("Next Frame")
         # print(len(data.checksum))
-        sumData = sumData + getDataStr[1:len(getDataStr)-32]
-
+        
 server.close()   
 print('Exit')
 print(sumData)
