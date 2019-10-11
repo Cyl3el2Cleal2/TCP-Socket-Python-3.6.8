@@ -23,12 +23,14 @@ byteStr = open('./client data/text.txt', "r").read()
 # byteStr = str(allbyte)[1:]
 # byteStr = byteStr[:-1]
 
-Time = 0.001
+Time = 0.002
 print(byteStr)
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.connect((HOST, PORT))
 
+totalSend = 0
+success = 0
 sumData = ''
 seq = 1
 while(len(byteStr) != 0):
@@ -38,6 +40,8 @@ while(len(byteStr) != 0):
     try:
         # print(type(data.seq))
         print(data.seq+data.data+data.checksum)
+        if totalSend % 2 == 1:
+            data.checksum = b'12345678901234567890123456789012'
         server.send(data.seq+data.data+data.checksum)
 
         # print("Receiving return data")
@@ -45,17 +49,20 @@ while(len(byteStr) != 0):
         send = 0
         getData = server.recv(1024)
         send = 1
+        success = success + 1
+        totalSend = totalSend + 1
     except socket.timeout as e:
-        print('Timeout, Send previous Frame again!!!!!!!!!!!!!!!!!!')
+        print('\033[92mTimeout\033[0m, Send previous Frame again!!!!!!!!!!!!!!!!!!')
         if send != 1:
             server.settimeout(1)
             trash = server.recv(1024)
             server.settimeout(Time)
+            totalSend = totalSend + 1
         continue
     getDataStr = repr(getData.decode()).replace('\'','')
     if getDataStr == 'NACK()':
-        print('>>>>>>>>>>>>> Send again')
-        seq = seq-1
+        print('>>>>>>>>>>>>> \033[91m Send again \033[0m')
+        # seq = seq-1
         continue
     print("Return >>>")
     print(getDataStr)
@@ -67,5 +74,5 @@ while(len(byteStr) != 0):
     else:
         continue
 server.close()   
-print('Exit')
+print('Exit, success \033[92m{}\033[91m / \033[93m{}\033[0m'.format(success, totalSend))
 print(sumData)

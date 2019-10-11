@@ -32,7 +32,8 @@ while True:
         print(data[1:len(data)-32])
         print('{} }}'.format(data[-32:]))
         check = hashlib.md5(bytes(data[:len(data)-32], 'utf-8')).hexdigest() == data[-32:] #ตรวจสอบความถูกต้องของข้อมูล
-        print('Verification = {}'.format(check))
+        color = '\033[92m' if check else '\033[91m'
+        print('Verification = {} {} '.format(color, check)+'\033[0m')
         if check:
             processedText = data[1:len(data)-32].lower() #แปลงเป็นตัวเล็ก
             conn.sendall(bytes(data[0]+processedText+hashlib.md5(bytes(data[0]+processedText, 'utf-8')).hexdigest(), 'utf-8')) #ส่งข้อมูลกลับไป
